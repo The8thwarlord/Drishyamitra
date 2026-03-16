@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=sqlite:////app/instance/drishyamitra.db
+      - SECRET_KEY=your_secret_key_here
+      # Groq and WhatsApp config go here or in a .env referenced by env_file
+    depends_on:
+      - redis
+    volumes:
+      - backend_data:/app/instance
+      - ./backend/data:/app/data
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A tasks.delivery_tasks worker --loglevel=info
+    environment:
+      - DATABASE_URL=sqlite:////app/instance/drishyamitra.db
+      - SECRET_KEY=your_secret_key_here
+    depends_on:
+      - redis
+      - backend
+    volumes:
+      - backend_data:/app/instance
+      - ./backend/data:/app/data
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=http://localhost/api
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  backend_data:

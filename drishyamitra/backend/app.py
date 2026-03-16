@@ -1,28 +1,26 @@
+import os
+from datetime import timedelta
+from dotenv import load_dotenv
+
 from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
-from dotenv import load_dotenv
-from models.database import db
-import os
 from flask_jwt_extended import JWTManager
+
+from models.database import db
 from routes.auth_routes import auth_bp
-from datetime import timedelta
-
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
-
-
-app.register_blueprint(auth_bp)
-
-
-app.config["JWT_SECRET_KEY"] = os.getenv("SECRET_KEY")
-
-jwt = JWTManager(app)
-
-
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
+
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
+app.config["JWT_SECRET_KEY"] = os.getenv("SECRET_KEY", "fallback_secret_key")
+
+jwt = JWTManager(app)
+
+app.register_blueprint(auth_bp)
 CORS(app)
 
 api = Api(app)
