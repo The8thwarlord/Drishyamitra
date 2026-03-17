@@ -1,16 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Gallery from "./components/Gallery";
 import UploadSection from "./components/UploadSection";
 import ChatAssistant from "./components/ChatAssistant";
-import { Camera, Image as ImageIcon, UploadCloud, Sparkles } from "lucide-react";
+import Login from "./components/Login";
+import SignUp from "./components/SignUp";
+import { Camera, Image as ImageIcon, UploadCloud, Sparkles, LogOut } from "lucide-react";
 
 function App() {
   const [activeTab, setActiveTab] = useState("gallery");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authView, setAuthView] = useState("login");
+
+  useEffect(() => {
+     const token = localStorage.getItem("token");
+     if (token) {
+       setIsAuthenticated(true);
+     }
+  }, []);
 
   const handleUploadSuccess = () => {
     setRefreshKey(prev => prev + 1);
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    if (authView === "login") {
+       return <Login onLoginSuccess={() => setIsAuthenticated(true)} onNavigateToSignUp={() => setAuthView("signup")} />;
+    } else {
+       return <SignUp onSignUpSuccess={() => setAuthView("login")} onNavigateToLogin={() => setAuthView("login")} />;
+    }
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-black text-gray-100 font-sans p-4 gap-6">
@@ -62,7 +86,7 @@ function App() {
           </button>
         </div>
         
-        <div className="p-5 m-5 rounded-2xl bg-gradient-to-tr from-violet-900/30 to-fuchsia-900/10 border border-violet-500/20 backdrop-blur-xl relative overflow-hidden group hover:border-violet-500/40 transition-colors">
+        <div className="p-5 m-5 mb-2 rounded-2xl bg-gradient-to-tr from-violet-900/30 to-fuchsia-900/10 border border-violet-500/20 backdrop-blur-xl relative overflow-hidden group hover:border-violet-500/40 transition-colors">
            <div className="absolute -right-4 -top-4 w-20 h-20 bg-violet-500/20 blur-2xl rounded-full group-hover:bg-violet-500/30 transition-colors" />
            <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center mb-4 border border-violet-500/30">
               <div className="w-2.5 h-2.5 rounded-full bg-violet-400 shadow-[0_0_10px_rgba(139,92,246,1)] animate-pulse" />
@@ -70,6 +94,14 @@ function App() {
            <p className="text-sm text-white font-medium">System Online</p>
            <p className="text-[11px] text-violet-300/60 mt-1 uppercase tracking-wider">Ready for requests</p>
         </div>
+
+        <button 
+           onClick={handleLogout}
+           className="mx-5 mb-5 flex items-center justify-center gap-2 p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="text-sm font-semibold">Terminate Session</span>
+        </button>
       </nav>
 
       {/* Main Content Area */}

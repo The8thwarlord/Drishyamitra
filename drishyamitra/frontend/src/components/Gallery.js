@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getGallery, labelFace } from '../services/api';
-import { Image as ImageIcon, Loader2, Maximize2, X, Tag, UserPlus, ImageOff } from 'lucide-react';
+import { getGallery, labelFace, deletePhoto } from '../services/api';
+import { Image as ImageIcon, Loader2, Maximize2, X, Tag, UserPlus, ImageOff, Trash2 } from 'lucide-react';
 
 const Gallery = () => {
   const [photos, setPhotos] = useState([]);
@@ -10,6 +10,7 @@ const Gallery = () => {
   const [labelInput, setLabelInput] = useState('');
   const [selectedFaceId, setSelectedFaceId] = useState(null);
   const [labeling, setLabeling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchGallery();
@@ -38,6 +39,24 @@ const Gallery = () => {
     setSelectedPhoto(null);
     setSelectedFaceId(null);
     setLabelInput('');
+  };
+
+  const handleDeletePhoto = async (photoId) => {
+    if (!window.confirm("Are you sure you want to delete this photo?")) return;
+    setDeleting(true);
+    try {
+      await deletePhoto(photoId);
+      // Removed from photos list locally
+      setPhotos(prev => prev.filter(p => p.id !== photoId));
+      if (selectedPhoto && selectedPhoto.id === photoId) {
+        closeModal();
+      }
+    } catch (err) {
+      console.error("Failed to delete photo:", err);
+      alert("Failed to delete photo. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleLabelFace = async () => {
@@ -135,9 +154,21 @@ const Gallery = () => {
                       {photo.faces?.length || 0} faces
                    </div>
                 </div>
-                <button className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-2.5 rounded-xl backdrop-blur-md transition-colors border border-white/10">
-                  <Maximize2 className="w-5 h-5 text-white" />
-                </button>
+                
+                <div className="absolute top-4 right-4 flex flex-col gap-2">
+                  <button className="bg-white/10 hover:bg-white/20 p-2.5 rounded-xl backdrop-blur-md transition-colors border border-white/10 group-hover:scale-100 scale-90 opacity-0 group-hover:opacity-100 shadow-md">
+                    <Maximize2 className="w-5 h-5 text-white" />
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeletePhoto(photo.id);
+                    }}
+                    className="bg-red-500/20 hover:bg-red-500/40 p-2.5 rounded-xl backdrop-blur-md transition-colors border border-red-500/30 group-hover:scale-100 scale-90 opacity-0 group-hover:opacity-100 shadow-md"
+                  >
+                    <Trash2 className="w-5 h-5 text-red-200" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -152,9 +183,18 @@ const Gallery = () => {
             
             <button 
               onClick={closeModal}
-              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-red-500/80 hover:text-white p-2.5 rounded-full text-gray-300 transition-all border border-white/10"
+              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-white/10 p-2.5 rounded-full text-gray-300 hover:text-white transition-all border border-white/10"
             >
               <X className="w-5 h-5" />
+            </button>
+            
+            <button 
+              onClick={() => handleDeletePhoto(selectedPhoto.id)}
+              disabled={deleting}
+              className="absolute top-4 right-16 z-10 bg-red-900/50 hover:bg-red-500/80 p-2.5 rounded-full text-red-200 hover:text-white transition-all border border-red-500/30 disabled:opacity-50"
+              title="Delete Photo"
+            >
+              <Trash2 className="w-5 h-5" />
             </button>
 
             {/* Image display side */}

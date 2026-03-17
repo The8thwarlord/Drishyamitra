@@ -6,7 +6,8 @@ from groq import Groq
 logging.basicConfig(level=logging.INFO)
 
 # Initialize Groq client
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+groq_api_key = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=groq_api_key) if groq_api_key else None
 
 # Current supported Groq model
 MODEL = "llama-3.3-70b-versatile"
@@ -16,6 +17,8 @@ def ask_ai(message):
     """
     Sends a message to the Groq LLM and returns the response.
     """
+    if not client:
+        return "I am running in mock mode because no GROQ_API_KEY was found. I received your message: " + message
 
     try:
         completion = client.chat.completions.create(

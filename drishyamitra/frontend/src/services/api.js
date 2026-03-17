@@ -36,6 +36,11 @@ export const getGallery = async () => {
   return response.data;
 };
 
+export const deletePhoto = async (photoId) => {
+  const response = await api.delete(`/photos/${photoId}`);
+  return response.data;
+};
+
 export const detectFaces = async (photoId) => {
   const response = await api.post(`/faces/detect/${photoId}`);
   return response.data;
@@ -57,6 +62,16 @@ export const sendMessage = async (message) => {
     // The endpoint path depends on your backend routes. Assuming /chat
     const response = await api.post("/chat", { message });
     return response.data;
+};
+
+export const login = async (email, password) => {
+  const response = await api.post("/login", { email, password });
+  return response.data;
+};
+
+export const register = async (email, password) => {
+  const response = await api.post("/register", { email, password });
+  return response.data;
 };
 
 export const requestDelivery = async (type, destination, photoPath, photoId) => {

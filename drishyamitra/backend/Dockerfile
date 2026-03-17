@@ -24,4 +24,4 @@ RUN mkdir -p instance
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--timeout", "120"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--timeout", "300"]
